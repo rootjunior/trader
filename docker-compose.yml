@@ -1,0 +1,38 @@
+version: '3'
+
+volumes:
+  postgres_data:
+
+services:
+
+  postgresql:
+    container_name: postgresql-container
+    image: postgres:13.4-alpine
+    env_file: env/postgres.env
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - '5432:5432'
+
+  api:
+    container_name: api-container
+    depends_on:
+      - postgresql
+    build:
+      args:
+        - ENVIRON=dev
+      context: .
+      dockerfile: ./services/api/Dockerfile
+    image: api-image:latest
+    env_file: env/api.env
+    volumes:
+      - ./services/api/:/code/api/
+      - ./scripts/:/code/scripts/
+    ports:
+      - "8000:8000"
+
+networks:
+  default:
+    name: bus
+    external: true
+    
